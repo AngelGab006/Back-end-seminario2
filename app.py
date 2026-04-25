@@ -32,19 +32,24 @@ class ClinicaData(BaseModel):
 
 @app.post("/predict")
 async def predict(data: ClinicaData):
-    # pre procesar datos
-    dict_data = data.dict()
-    columnas_frontend = ['hemo', 'rbcc', 'sc', 'bu', 'al', 'sg', 'htn', 'dm', 'bgr', 'age']
-    input_df = pd.DataFrame([dict_data])[columnas_frontend]
-    input_df = input_df.rename(columns={
-        'htn': 'htn_yes',
-        'dm': 'dm_yes'
-    })
-    
-    # Escalar los datos
-    scaled_data = scaler.transform(input_df)
-    
-    # Realizar la predicción
-    prediction = model.predict(scaled_data)
-    
-    return {"prediction": int(prediction[0])}
+    try:
+        # pre procesar datos
+        dict_data = data.dict()
+        columnas_frontend = ['hemo', 'rbcc', 'sc', 'bu', 'al', 'sg', 'htn', 'dm', 'bgr', 'age']
+        input_df = pd.DataFrame([dict_data])[columnas_frontend]
+        input_df = input_df.rename(columns={
+            'htn': 'htn_yes',
+            'dm': 'dm_yes'
+        })
+        
+        # Escalar los datos
+        scaled_data = scaler.transform(input_df)
+        
+        # Realizar la predicción
+        prediction = model.predict(scaled_data)
+        
+        return {"prediction": int(prediction[0])}
+        
+    except Exception as e:
+        print(f"Error interno: {e}")
+        return {"error": str(e)}, 500
