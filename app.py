@@ -36,14 +36,15 @@ async def predict(data: ClinicaData):
         dict_data = data.dict()
         input_df = pd.DataFrame([dict_data])
         
+        # Renombrar columnas
         input_df = input_df.rename(columns={
             'htn': 'htn_yes',
             'dm': 'dm_yes'
         })
         
-        # re ordenar
+        # Reordenar
         columnas_entrenamiento = [
-            'hemo', 'rbcc', 'sc', 'bu', 'al', 'sg', 'htn_yes', 'dm_yes', 'bgr', 'age'
+            'age', 'sg', 'al', 'bgr', 'bu', 'sc', 'hemo', 'rbcc', 'htn_yes', 'dm_yes'
         ]
         input_df = input_df[columnas_entrenamiento]
         
