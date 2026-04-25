@@ -30,32 +30,22 @@ class ClinicaData(BaseModel):
     bgr: float
     age: float
 
+
 @app.post("/predict")
 async def predict(data: ClinicaData):
-    try:
-        dict_data = data.dict()
-        input_df = pd.DataFrame([dict_data])
-        
-        # Renombrar columnas
-        input_df = input_df.rename(columns={
-            'htn': 'htn_yes',
-            'dm': 'dm_yes'
-        })
-        
-        # Reordenar
-        columnas_entrenamiento = [
-            'age', 'sg', 'al', 'bgr', 'bu', 'sc', 'hemo', 'rbcc', 'htn_yes', 'dm_yes'
-        ]
-        input_df = input_df[columnas_entrenamiento]
-        
-        # Escalar
-        scaled_data = scaler.transform(input_df)
-
-        # Predecir
-        prediction = model.predict(scaled_data)
-        
-        return {"prediction": int(prediction[0])}
-        
-    except Exception as e:
-        print(f"ERROR: {str(e)}")
-        return {"error": str(e)}, 500
+    input_df = pd.DataFrame([data.dict()])
+    scaled_data = scaler.transform(input_df)
+    
+    # Obtener las probabilidades [prob_sano, prob_enfermo]
+    probabilities = model.predict_proba(scaled_data)[0]
+    
+    # La predicción final (clase con mayor probabilidad)
+    prediction = int(model.predict(scaled_data)[0])
+    
+    # Confianza: si es 1, enviamos prob_enfermo; si es 0, enviamos prob_sano
+    confidence = probabilities[prediction] * 100
+    
+    return {
+        "prediction": prediction,
+        "confidence": round(confidence, 2)
+    }
